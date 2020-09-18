@@ -6,14 +6,12 @@ import javax.persistence.*
 
 @Entity(name = "zupcamp_proposals")
 class Proposal(
+        @Id
+        @GeneratedValue
+        var id: Long? = null,
         @OneToOne(cascade = [CascadeType.ALL])
         var requester: Requester,
-
         @OneToOne
-        var card: Card? = null
-) {
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-    var status: String = "RECEIVED"
-}
+        var card: Card? = null,
+        var status: String = "RECEIVED"
+)

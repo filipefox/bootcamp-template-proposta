@@ -26,5 +26,11 @@ data class ProposalRequest(
 )
 
 fun ProposalRequest.toEntity() = Proposal(
-        requester = Requester(cpfOrCnpj, email, name, address, salary)
+        requester = Requester(
+                document = cpfOrCnpj,
+                email = email,
+                name = name,
+                address = address,
+                salary = salary
+        )
 )

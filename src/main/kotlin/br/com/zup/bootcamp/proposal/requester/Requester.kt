@@ -6,13 +6,12 @@ import javax.persistence.Id
 
 @Entity(name = "zupcamp_requesters")
 class Requester(
+        @Id
+        @GeneratedValue
+        val id: Long? = null,
         var document: String,
         var email: String,
         var name: String,
         var address: String,
         var salary: String
-) {
-    @Id
-    @GeneratedValue
-    val id: Long? = null
-}
+)

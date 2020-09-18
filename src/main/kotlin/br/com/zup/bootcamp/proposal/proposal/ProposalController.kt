@@ -1,30 +1,23 @@
 package br.com.zup.bootcamp.proposal.proposal
 
-import br.com.zup.bootcamp.proposal.legacy.financial_analyze.FinancialAnalyzeService
-import br.com.zup.bootcamp.proposal.legacy.financial_analyze.toFinancialAnalyzeRequest
+import br.com.zup.bootcamp.proposal.builders.LocationUriUtil
+import br.com.zup.bootcamp.proposal.financial_analyze.FinancialAnalyzeService
+import br.com.zup.bootcamp.proposal.financial_analyze.exceptions.FinancialAnalyzeException
+import br.com.zup.bootcamp.proposal.financial_analyze.exceptions.FinancialAnalyzeNotEligibleException
 import br.com.zup.bootcamp.proposal.requester.RequesterRepository
-import feign.FeignException
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Tag
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder
 import javax.persistence.EntityNotFoundException
 import javax.validation.Valid
-
 
 @RestController
 @RequestMapping(path = ["/api/proposals"])
 class ProposalController(
         private val proposalRepository: ProposalRepository,
         private val requesterRepository: RequesterRepository,
-        private val financialAnalyzeService: FinancialAnalyzeService,
-        private val meterRegistry: MeterRegistry
+        private val financialAnalyzeService: FinancialAnalyzeService
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @PostMapping("/v1/create")
     fun save(@Valid @RequestBody proposalRequest: ProposalRequest): ResponseEntity<ProposalResponse> {
         return try {
@@ -32,35 +25,20 @@ class ProposalController(
             proposalRepository.findByRequesterId(requester.id).orElseThrow { EntityNotFoundException() }
             ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build()
         } catch (e: EntityNotFoundException) {
-            var proposal = proposalRequest.toEntity()
-            proposal = proposalRepository.save(proposal)
+            val proposal = proposalRepository.save(proposalRequest.toEntity())
 
             try {
-                val cardAnalyzeRequest = financialAnalyzeService.make(proposal.toFinancialAnalyzeRequest())
-
-                if (cardAnalyzeRequest.resultadoSolicitacao == "SEM_RESTRICAO") {
-                    proposal.status = "ELEGIVEL"
-                } else {
-                    proposal.status = "NAO_ELEGIVEL"
-                }
-            } catch (e: FeignException.FeignClientException) {
-                proposal.status = "ERROR"
+                financialAnalyzeService.makeFinancialAnalyze(proposal)
+                saveProposalStatus(proposal, "ELEGIVEL")
+                val location = LocationUriUtil().getUriFromMethodName(javaClass, "findById", proposal.id)
+                ResponseEntity.created(location).body(proposal.toProposalResponse())
+            } catch (e: FinancialAnalyzeNotEligibleException) {
+                saveProposalStatus(proposal, "NAO_ELEGIVEL")
+                ResponseEntity.ok().build()
+            } catch (e: FinancialAnalyzeException) {
+                saveProposalStatus(proposal, "ERROR")
+                ResponseEntity.ok().build()
             }
-
-            val tags: ArrayList<Tag> = arrayListOf()
-            tags.add(Tag.of("bank", "Itaú"))
-            tags.add(Tag.of("issuer", "Mastercard"))
-            val counter = meterRegistry.counter("created_proposal", tags)
-            counter.increment()
-
-            // TODO: Remover esse save aqui só pra poder salvar o status!
-            proposalRepository.save(proposal)
-
-            val location = MvcUriComponentsBuilder
-                    .fromMethodName(javaClass, "findById", proposal.id)
-                    .buildAndExpand(proposal.id)
-                    .toUri()
-            ResponseEntity.created(location).body(proposal.toProposalResponse())
         }
     }
 
@@ -92,5 +70,10 @@ class ProposalController(
         } catch (e: EntityNotFoundException) {
             ResponseEntity.notFound().build()
         }
+    }
+
+    private fun saveProposalStatus(proposal: Proposal, status: String) {
+        proposal.status = "ELEGIVEL"
+        proposalRepository.save(proposal)
     }
 }
