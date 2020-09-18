@@ -73,7 +73,7 @@ class ProposalController(
     }
 
     private fun saveProposalStatus(proposal: Proposal, status: String) {
-        proposal.status = "ELEGIVEL"
+        proposal.status = status
         proposalRepository.save(proposal)
     }
 }
