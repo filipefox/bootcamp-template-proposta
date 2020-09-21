@@ -3,7 +3,7 @@ package br.com.zup.bootcamp.proposal.proposal
 data class ProposalResponse(
         val id: Long?,
         val requesterId: Long?,
-        val status: String
+        val status: ProposalStatus
 )
 
 fun Proposal.toProposalResponse() = ProposalResponse(

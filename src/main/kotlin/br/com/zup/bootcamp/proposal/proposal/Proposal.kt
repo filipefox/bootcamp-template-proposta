@@ -13,5 +13,5 @@ class Proposal(
         var requester: Requester,
         @OneToOne
         var card: Card? = null,
-        var status: String = "RECEIVED"
+        var status: ProposalStatus = ProposalStatus.RECEIVED
 )

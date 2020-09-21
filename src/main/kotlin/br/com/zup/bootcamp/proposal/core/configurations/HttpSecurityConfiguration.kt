@@ -10,8 +10,8 @@ class HttpSecurityConfiguration : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http.authorizeRequests {
             it
-                    .antMatchers(HttpMethod.POST, "/api/proposals/**").hasAuthority("SCOPE_proposals:create")
-                    .antMatchers(HttpMethod.GET, "/api/proposals/**").hasAuthority("SCOPE_proposals:read")
+                    .antMatchers(HttpMethod.POST, "/api/proposals/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/api/proposals/**").permitAll()
 
                     .antMatchers(HttpMethod.POST, "/api/cards/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/api/cards/**").permitAll()

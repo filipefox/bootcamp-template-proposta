@@ -1,10 +1,10 @@
 package br.com.zup.bootcamp.proposal.proposal
 
-import br.com.zup.bootcamp.proposal.builders.LocationUriUtil
 import br.com.zup.bootcamp.proposal.financial_analyze.FinancialAnalyzeService
 import br.com.zup.bootcamp.proposal.financial_analyze.exceptions.FinancialAnalyzeException
 import br.com.zup.bootcamp.proposal.financial_analyze.exceptions.FinancialAnalyzeNotEligibleException
 import br.com.zup.bootcamp.proposal.requester.RequesterRepository
+import br.com.zup.bootcamp.proposal.utils.LocationUriUtil
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -19,26 +19,30 @@ class ProposalController(
         private val financialAnalyzeService: FinancialAnalyzeService
 ) {
     @PostMapping("/v1/create")
-    fun save(@Valid @RequestBody proposalRequest: ProposalRequest): ResponseEntity<ProposalResponse> {
-        return try {
+    fun create(@Valid @RequestBody proposalRequest: ProposalRequest): ResponseEntity<ProposalResponse> {
+        try {
             val requester = requesterRepository.findByDocument(proposalRequest.cpfOrCnpj).orElseThrow { EntityNotFoundException() }
             proposalRepository.findByRequesterId(requester.id).orElseThrow { EntityNotFoundException() }
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build()
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build()
         } catch (e: EntityNotFoundException) {
-            val proposal = proposalRepository.save(proposalRequest.toEntity())
+            var responseEntity: ResponseEntity<ProposalResponse>
+            val proposal = proposalRequest.toEntity()
 
             try {
-                financialAnalyzeService.makeFinancialAnalyze(proposal)
-                saveProposalStatus(proposal, "ELEGIVEL")
+                financialAnalyzeService.makeFinancialAnalysis(proposal)
+                proposal.status = ProposalStatus.ELIGIBLE
                 val location = LocationUriUtil().getUriFromMethodName(javaClass, "findById", proposal.id)
-                ResponseEntity.created(location).body(proposal.toProposalResponse())
+                responseEntity = ResponseEntity.created(location).body(proposal.toProposalResponse())
             } catch (e: FinancialAnalyzeNotEligibleException) {
-                saveProposalStatus(proposal, "NAO_ELEGIVEL")
-                ResponseEntity.ok().build()
+                proposal.status = ProposalStatus.NOT_ELIGIBLE
+                responseEntity = ResponseEntity.ok().build()
             } catch (e: FinancialAnalyzeException) {
-                saveProposalStatus(proposal, "ERROR")
-                ResponseEntity.ok().build()
+                proposal.status = ProposalStatus.EXCEPTION
+                responseEntity = ResponseEntity.ok().build()
             }
+
+            proposalRepository.save(proposal)
+            return responseEntity
         }
     }
 
@@ -50,11 +54,15 @@ class ProposalController(
 
     @PutMapping("/v1/updateById/{id}")
     fun updateById(@PathVariable("id") id: Long, @Valid @RequestBody proposalRequest: ProposalRequest): ResponseEntity<ProposalResponse> {
-        proposalRepository.findById(id).orElseThrow { EntityNotFoundException() }
-        var proposal = proposalRequest.toEntity()
-        proposal.id = id
-        proposal = proposalRepository.save(proposal)
-        return ResponseEntity.ok(proposal.toProposalResponse())
+        return try {
+            proposalRepository.findById(id).orElseThrow { EntityNotFoundException() }
+            var proposal = proposalRequest.toEntity()
+            proposal.id = id
+            proposal = proposalRepository.save(proposal)
+            return ResponseEntity.ok(proposal.toProposalResponse())
+        } catch (e: EntityNotFoundException) {
+            ResponseEntity.notFound().build()
+        }
     }
 
     @DeleteMapping("/v1/deleteById/{id}")
@@ -70,10 +78,5 @@ class ProposalController(
         } catch (e: EntityNotFoundException) {
             ResponseEntity.notFound().build()
         }
-    }
-
-    private fun saveProposalStatus(proposal: Proposal, status: String) {
-        proposal.status = status
-        proposalRepository.save(proposal)
     }
 }

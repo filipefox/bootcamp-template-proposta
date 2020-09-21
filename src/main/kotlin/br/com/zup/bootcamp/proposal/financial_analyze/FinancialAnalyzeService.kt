@@ -15,18 +15,18 @@ class FinancialAnalyzeService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun makeFinancialAnalyze(proposal: Proposal) {
+    fun makeFinancialAnalysis(proposal: Proposal) {
         try {
-            val cardAnalyzeRequest = financialAnalyzeClient.make(proposal.toFinancialAnalyzeRequest())
+            val financialAnalyzeRequest = financialAnalyzeClient.make(proposal.toFinancialAnalyzeRequest())
 
-            if (cardAnalyzeRequest.resultadoSolicitacao == "SEM_RESTRICAO") {
+            if (financialAnalyzeRequest.resultadoSolicitacao == "SEM_RESTRICAO") {
                 log.info("Proposta de número ${proposal.id} sem restrições")
             } else {
-                log.warn("Proposta de número ${proposal.id} possui a restrição \"${cardAnalyzeRequest.resultadoSolicitacao}\"")
+                log.warn("Proposta de número ${proposal.id} possui a restrição \"${financialAnalyzeRequest.resultadoSolicitacao}\"")
                 throw FinancialAnalyzeNotEligibleException()
             }
         } catch (e: FeignException.FeignClientException) {
-            log.error("exceção na proposta de número ${proposal.id}", e)
+            log.error("Exceção na proposta de número ${proposal.id}", e)
             throw FinancialAnalyzeException()
         }
     }
