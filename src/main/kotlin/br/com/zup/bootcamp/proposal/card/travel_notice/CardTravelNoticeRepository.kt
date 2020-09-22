@@ -5,4 +5,4 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface TravelNoticeRepository : JpaRepository<TravelNotice, UUID>
+interface CardTravelNoticeRepository : JpaRepository<CardTravelNotice, UUID>

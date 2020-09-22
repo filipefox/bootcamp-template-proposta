@@ -2,7 +2,7 @@ package br.com.zup.bootcamp.proposal.card.travel_notice
 
 import br.com.zup.bootcamp.proposal.card.Card
 
-data class TravelNoticeResponse(
+data class CardTravelNoticeResponse(
         var id: Long?,
         var card: Card,
         var travelDestination: String,
@@ -13,7 +13,7 @@ data class TravelNoticeResponse(
         var createdAt: String
 )
 
-fun TravelNotice.toTravelNoticeResponse() = TravelNoticeResponse(
+fun CardTravelNotice.toTravelNoticeResponse() = CardTravelNoticeResponse(
         id = id,
         card = card,
         travelDestination = travelDestination,

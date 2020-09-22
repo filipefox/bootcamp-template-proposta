@@ -4,7 +4,7 @@ import br.com.zup.bootcamp.proposal.financial_analyze.FinancialAnalyzeService
 import br.com.zup.bootcamp.proposal.financial_analyze.exceptions.FinancialAnalyzeException
 import br.com.zup.bootcamp.proposal.financial_analyze.exceptions.FinancialAnalyzeNotEligibleException
 import br.com.zup.bootcamp.proposal.requester.RequesterRepository
-import br.com.zup.bootcamp.proposal.utils.LocationUriUtil
+import br.com.zup.bootcamp.proposal.core.utils.LocationUriUtil
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -44,30 +44,6 @@ class ProposalController(
             proposalRepository.save(proposal)
             return responseEntity
         }
-    }
-
-    @GetMapping("/v1/findAll")
-    fun findAll(): ResponseEntity<List<ProposalResponse>> {
-        val proposals = proposalRepository.findAll()
-        return ResponseEntity.ok(proposals.map { proposal -> proposal.toProposalResponse() }.toList())
-    }
-
-    @PutMapping("/v1/updateById/{id}")
-    fun updateById(@PathVariable("id") id: Long, @Valid @RequestBody proposalRequest: ProposalRequest): ResponseEntity<ProposalResponse> {
-        return try {
-            proposalRepository.findById(id).orElseThrow { EntityNotFoundException() }
-            var proposal = proposalRequest.toEntity()
-            proposal.id = id
-            proposal = proposalRepository.save(proposal)
-            return ResponseEntity.ok(proposal.toProposalResponse())
-        } catch (e: EntityNotFoundException) {
-            ResponseEntity.notFound().build()
-        }
-    }
-
-    @DeleteMapping("/v1/deleteById/{id}")
-    fun deleteById(@PathVariable("id") id: Long) {
-        proposalRepository.deleteById(id)
     }
 
     @GetMapping("/v1/findById/{id}")

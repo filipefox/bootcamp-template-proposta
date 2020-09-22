@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface CardPasswordRecoveryRepository : JpaRepository<CardPasswordRecovery, UUID>
+interface CardPasswordRecoveryRepository : JpaRepository<CardPasswordRecovery, UUID> {
+    fun findByCardId(id: UUID): Optional<CardPasswordRecovery>
+}

@@ -1,7 +1,7 @@
 package br.com.zup.bootcamp.proposal.card
 
 import br.com.zup.bootcamp.proposal.card.biometric.Biometric
-import br.com.zup.bootcamp.proposal.card.block.Block
+import br.com.zup.bootcamp.proposal.card.block.CardBlock
 import br.com.zup.bootcamp.proposal.card.due_date.DueDate
 import br.com.zup.bootcamp.proposal.card.parcel.Parcel
 import br.com.zup.bootcamp.proposal.card.renegotiation.Renegotiation
@@ -17,7 +17,7 @@ class Card(
         var issuedOn: String?,
         var holderName: String?,
         @OneToMany
-        var blocks: MutableList<Block>?,
+        var cardBlocks: MutableList<CardBlock>?,
         @OneToMany
         var warnings: MutableList<Warning>?,
         @OneToMany

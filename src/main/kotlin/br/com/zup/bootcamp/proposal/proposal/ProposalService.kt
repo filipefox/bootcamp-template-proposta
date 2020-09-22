@@ -1,23 +1,23 @@
-package br.com.zup.bootcamp.proposal.card
+package br.com.zup.bootcamp.proposal.proposal
 
+import br.com.zup.bootcamp.proposal.card.CardRepository
 import br.com.zup.bootcamp.proposal.legacy.cartao.LegacyCartaoClient
 import br.com.zup.bootcamp.proposal.legacy.cartao.toCard
-import br.com.zup.bootcamp.proposal.proposal.ProposalRepository
 import feign.FeignException
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
-class CardService(
-        private val cardRepository: CardRepository,
+class ProposalService(
         private val proposalRepository: ProposalRepository,
-        private val legacyCartaoClient: LegacyCartaoClient
+        private val legacyCartaoClient: LegacyCartaoClient,
+        private val cardRepository: CardRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(fixedDelay = 60 * 1000)
-    fun check() {
+    @Scheduled(fixedDelay = 1000 * 60)
+    fun checkProposalsWithoutCard() {
         val proposalsWithoutCard = proposalRepository.findByCardIsNull()
         proposalsWithoutCard.forEach { proposal ->
             try {

@@ -1,4 +1,4 @@
-package br.com.zup.bootcamp.proposal.utils
+package br.com.zup.bootcamp.proposal.core.utils
 
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder
 import java.net.URI

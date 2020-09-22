@@ -7,7 +7,7 @@ import javax.persistence.Id
 import javax.persistence.ManyToOne
 
 @Entity(name = "zupcamp_cards_travel_notices")
-class TravelNotice(
+class CardTravelNotice(
         @Id
         @GeneratedValue
         var id: Long? = null,

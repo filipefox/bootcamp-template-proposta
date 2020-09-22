@@ -4,7 +4,7 @@ import javax.persistence.Entity
 import javax.persistence.Id
 
 @Entity(name = "zupcamp_blocks")
-class Block(
+class CardBlock(
         @Id
         var id: String,
         var bloqueadoEm: String,
